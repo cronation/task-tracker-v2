@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { MdDeleteOutline, MdDateRange, MdNotes } from 'react-icons/md';
+import { MdDeleteOutline, MdDateRange, MdClose, MdNavigateNext } from 'react-icons/md';
 import type { Todo, TodoStatus } from '../../types/todo';
 import { useTodoStore } from '../../store/useTodoStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -10,6 +10,7 @@ const ItemContainer = styled.div<{ $isExpanded: boolean }>`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   background: #fff;
   transition: all 0.2s;
+  position: relative; 
 
   ${({ $isExpanded }) =>
     $isExpanded &&
@@ -21,21 +22,22 @@ const ItemContainer = styled.div<{ $isExpanded: boolean }>`
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       border-bottom: none;
     `}
-`;
-
-// Collapsed View (요약)
-const SummaryView = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 12px 10px;
-  cursor: pointer;
-  gap: 15px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.textPrimary};
 
   &:hover {
     background: #f4f5f7;
   }
+`;
+
+// ... (SummaryView, SummaryMeta, SummaryMemo preserved) ...
+
+const SummaryView = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 3px 10px;
+  cursor: pointer;
+  gap: 15px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
 const SummaryMeta = styled.div`
@@ -49,16 +51,17 @@ const SummaryMeta = styled.div`
 
 const SummaryMemo = styled.div`
   flex: 1;
-  font-size: 13px;
+  padding: 2px 10px;
+  font-size: 11px;
   color: ${({ theme }) => theme.colors.textSecondary};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
 `;
 
 // Expanded View (편집 폼)
 const EditForm = styled.div`
-  padding: 15px 10px 20px;
+  padding: 15px 10px 10px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -67,12 +70,7 @@ const EditForm = styled.div`
 const InputGroup = styled.div`
   display: flex;
   gap: 10px;
-  
-  input, select {
-    padding: 8px;
-    border: 1px solid ${({ theme }) => theme.colors.border};
-    border-radius: 3px;
-  }
+  align-items: center;
 `;
 
 const StyledInput = styled.input`
@@ -90,17 +88,28 @@ const StyledTextarea = styled.textarea`
   font-family: inherit;
 `;
 
-const Footer = styled.div`
+const TopIconButton = styled.button`
+  padding: 4px;
+  font-size: 18px;
+  color: #5e6c84;
+  border-radius: 4px;
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover { 
+    color: #172b4d; 
+    background: #eaecf0; 
+  }
 `;
+
+const statusOrder: TodoStatus[] = ['IDEA', 'PLAN', 'IN_PROGRESS', 'REVIEW', 'DONE'];
 
 export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   const { updateTodo, deleteTodo } = useTodoStore();
-  const { expandedTodoId, setExpandedTodoId } = useUIStore();
-  
-  const isExpanded = expandedTodoId === todo.id;
+  const { selectedTodoId, setSelectedTodoId } = useUIStore();
+
+  const isExpanded = selectedTodoId === todo.id;
 
   // 로컬 폼 상태
   const [formData, setFormData] = useState(todo);
@@ -130,18 +139,28 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   };
 
   // 삭제 핸들러
-  const handleDelete = () => {
-    if (confirm('삭제하시겠습니까?')) {
-      deleteTodo(todo.id);
+  const handleDelete = () => deleteTodo(todo.id);
+
+  const currentIndex = statusOrder.indexOf(todo.status);
+  const nextStatus = currentIndex < statusOrder.length - 1 ? statusOrder[currentIndex + 1] : null;
+
+  const handleNext = () => {
+    if (nextStatus) {
+      updateTodo(todo.id, { status: nextStatus });
     }
   };
 
   if (!isExpanded) {
+    const memoLines = todo.memo ? todo.memo.split('\n') : [];
+    const displayMemo = memoLines.length > 3
+      ? '... \n' + memoLines.slice(-3).join('\n')
+      : todo.memo;
+
     return (
-      <ItemContainer $isExpanded={false}>
-        <SummaryView onClick={() => setExpandedTodoId(todo.id)}>
+      <ItemContainer $isExpanded={false} onClick={() => setSelectedTodoId(todo.id)}>
+        <SummaryView>
           <div style={{ flex: 1, fontWeight: 500 }}>{todo.title || '(제목 없음)'}</div>
-          
+
           <SummaryMeta>
             {todo.dueDate && (
               <>
@@ -149,13 +168,11 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
               </>
             )}
           </SummaryMeta>
-          
-          <SummaryMemo>
-            {todo.memo ? (
-              <><MdNotes style={{ verticalAlign: 'middle' }} /> {todo.memo.slice(0, 30)}</>
-            ) : ''}
-          </SummaryMemo>
+
         </SummaryView>
+        <SummaryMemo>
+          {displayMemo}
+        </SummaryMemo>
       </ItemContainer>
     );
   }
@@ -176,9 +193,8 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             name="status"
             value={formData.status}
             onChange={(e) => {
-               handleChange(e);
-               // 상태 변경은 즉시 반영되어야 UX가 자연스러움 (리스트에서 이동됨)
-               updateTodo(todo.id, { status: e.target.value as TodoStatus });
+              handleChange(e);
+              updateTodo(todo.id, { status: e.target.value as TodoStatus });
             }}
             onBlur={handleSave}
           >
@@ -195,6 +211,21 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             onChange={handleChange}
             onBlur={handleSave}
           />
+
+          <TopIconButton onClick={handleDelete} title="Delete" style={{ color: '#DE350B' }}>
+            <MdDeleteOutline />
+          </TopIconButton>
+          <TopIconButton
+            onClick={handleNext}
+            title={nextStatus ? `Move to ${nextStatus}` : 'Done'}
+            disabled={!nextStatus}
+            style={{ opacity: !nextStatus ? 0.3 : 1 }}
+          >
+            <MdNavigateNext />
+          </TopIconButton>
+          <TopIconButton onClick={() => setSelectedTodoId(null)} title="Close">
+            <MdClose />
+          </TopIconButton>
         </InputGroup>
 
         <StyledTextarea
@@ -204,13 +235,6 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
           onBlur={handleSave}
           placeholder="메모를 입력하세요..."
         />
-
-        <Footer>
-          <button onClick={handleDelete} style={{ color: '#DE350B', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <MdDeleteOutline /> 삭제
-          </button>
-          <button onClick={() => setExpandedTodoId(null)}>닫기</button>
-        </Footer>
       </EditForm>
     </ItemContainer>
   );

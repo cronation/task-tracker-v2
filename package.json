@@ -16,7 +16,6 @@
     "react-icons": "^5.5.0",
     "styled-components": "^6.1.19",
     "uuid": "^13.0.0",
-    "zundo": "^2.3.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

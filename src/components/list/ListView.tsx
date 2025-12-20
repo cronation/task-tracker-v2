@@ -3,9 +3,11 @@ import { StatusAccordion } from './StatusAccordion';
 import type { TodoStatus } from '../../types/todo';
 
 const ListContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding-bottom: 40px;
+  width: 100%;
+  height: calc(100vh - 80px);
+  overflow-y: scroll;
+  /* margin: 0 auto; */
+  /* padding-bottom: 40px; */
 `;
 
 export const ListView = () => {

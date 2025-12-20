@@ -1,36 +1,61 @@
 import { create } from 'zustand';
-import type { TodoStatus, SortOption } from '../types/todo';
+import { persist } from 'zustand/middleware';
+import type { TodoStatus, SortOption, SortField } from '../types/todo';
 
 interface UIState {
   viewMode: 'KANBAN' | 'LIST';
-  columnSorts: Record<TodoStatus, SortOption>;
-  expandedStatus: TodoStatus | null; // Level 1: Status Accordion
-  expandedTodoId: string | null;     // Level 2: Todo Item Accordion
+  statusSorts: Record<TodoStatus, SortOption>;
+  selectedTodoId: string | null;
   setViewMode: (mode: 'KANBAN' | 'LIST') => void;
-  setExpandedStatus: (status: TodoStatus | null) => void;
-  setExpandedTodoId: (id: string | null) => void;
+  setSort: (status: TodoStatus, option: SortOption) => void;
+  toggleSort: (status: TodoStatus, field: SortField) => void;
+  setSelectedTodoId: (id: string | null) => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
-  viewMode: 'KANBAN', // Default View
-  columnSorts: {
-    IDEA: 'CREATED_DESC',
-    PLAN: 'CREATED_DESC',
-    IN_PROGRESS: 'CREATED_DESC',
-    REVIEW: 'CREATED_DESC',
-    DONE: 'CREATED_DESC',
-  },
-  expandedStatus: null,
-  expandedTodoId: null,
-  setViewMode: (mode) => set({ viewMode: mode }),
-  setExpandedStatus: (status) =>
-    set((state) => ({
-      // Toggle Logic: 이미 열려있으면 닫기, 아니면 열기
-      expandedStatus: state.expandedStatus === status ? null : status,
-      expandedTodoId: null, // 상위 닫히면 하위도 닫힘
-    })),
-  setExpandedTodoId: (id) =>
-    set((state) => ({
-      expandedTodoId: state.expandedTodoId === id ? null : id,
-    })),
-}));
+export const useUIStore = create<UIState>()(
+  persist(
+    (set) => ({
+      viewMode: 'KANBAN',
+      statusSorts: {
+        IDEA: 'CREATED_DESC',
+        PLAN: 'CREATED_DESC',
+        IN_PROGRESS: 'CREATED_DESC',
+        REVIEW: 'CREATED_DESC',
+        DONE: 'CREATED_DESC',
+      },
+      selectedTodoId: null,
+      setViewMode: (mode) => set({ viewMode: mode }),
+      setSort: (status, option) =>
+        set((state) => ({
+          statusSorts: { ...state.statusSorts, [status]: option },
+        })),
+      toggleSort: (status, field) =>
+        set((state) => {
+          const current = state.statusSorts[status];
+          const [currentField, currentDir] = current.split('_') as [SortField, 'ASC' | 'DESC'];
+
+          if (currentField === field) {
+            // Same field: toggle direction
+            const newDir = currentDir === 'ASC' ? 'DESC' : 'ASC';
+            return {
+              statusSorts: { ...state.statusSorts, [status]: `${field}_${newDir}` as SortOption },
+            };
+          } else {
+            // New field: default to DESC (usually better for dates/updates) or ASC?
+            // User example: "clicking on due changes sort to due desc" -> Default DESC.
+            // Except for Title maybe? Let's default DESC for all for consistency, as per user example.
+            return {
+              statusSorts: { ...state.statusSorts, [status]: `${field}_DESC` as SortOption },
+            };
+          }
+        }),
+      setSelectedTodoId: (id) =>
+        set((state) => ({
+          selectedTodoId: state.selectedTodoId === id ? null : id,
+        })),
+    }),
+    {
+      name: 'ui-storage',
+    }
+  )
+);

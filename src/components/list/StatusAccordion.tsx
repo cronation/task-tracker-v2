@@ -1,12 +1,14 @@
-import React from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from 'react-icons/md';
 import type { TodoStatus } from '../../types/todo';
 import { useTodoStore } from '../../store/useTodoStore';
-import { useUIStore } from '../../store/useUIStore';
+// import { useUIStore } from '../../store/useUIStore';
 import { TodoItemAccordion } from './TodoItemAccordion';
 
 const AccordionContainer = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
   margin-bottom: 12px;
   background: #fff;
   border: 1px solid ${({ theme }) => theme.colors.border};
@@ -29,14 +31,6 @@ const StatusHeader = styled.div<{ $status: TodoStatus; $isOpen: boolean }>`
   }
 `;
 
-const StatusColorStrip = styled.div<{ $status: TodoStatus }>`
-  width: 4px;
-  height: 24px;
-  border-radius: 4px;
-  margin-right: 12px;
-  background-color: ${({ theme, $status }) => theme.colors.status[$status]};
-`;
-
 const StatusTitle = styled.h3`
   flex: 1;
   font-size: 15px;
@@ -56,7 +50,7 @@ const CountBadge = styled.span`
 
 const TodoListWrapper = styled.div`
   background: #fff;
-  padding: 0 20px;
+  padding: 0 20px 10px;
 `;
 
 const EmptyMessage = styled.div`
@@ -70,27 +64,31 @@ interface Props {
   status: TodoStatus;
 }
 
+const STATUS_LABELS: Record<TodoStatus, string> = {
+  IDEA: '구상',
+  PLAN: '계획',
+  IN_PROGRESS: '진행',
+  REVIEW: '검수',
+  DONE: '완료',
+};
+
 export const StatusAccordion = ({ status }: Props) => {
   const { todos } = useTodoStore();
-  const { expandedStatus, setExpandedStatus } = useUIStore();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const isOpen = expandedStatus === status;
   const statusTodos = todos.filter((t) => t.status === status);
 
   return (
     <AccordionContainer>
-      <StatusHeader 
-        $status={status} 
-        $isOpen={isOpen} 
-        onClick={() => setExpandedStatus(status)}
+      <StatusHeader
+        $status={status}
+        $isOpen={isOpen}
+        onClick={() => setIsOpen(!isOpen)}
       >
-        {/* 상태 컬러 띠 */}
-        <StatusColorStrip $status={status} />
-        
-        <StatusTitle>{status}</StatusTitle>
-        
+        <StatusTitle>{STATUS_LABELS[status]}</StatusTitle>
+
         <CountBadge>{statusTodos.length}</CountBadge>
-        
+
         {isOpen ? <MdKeyboardArrowDown size={20} /> : <MdKeyboardArrowRight size={20} />}
       </StatusHeader>
 

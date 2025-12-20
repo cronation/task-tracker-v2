@@ -8,8 +8,9 @@ import { ListView } from './components/list/ListView';
 
 const MainLayout = styled.main`
   width: 100vw;
-  margin: 0 auto;
-  padding: 0 20px;
+  height: 100vh;
+  /* margin: 0 auto; */
+  /* padding: 20px 0; */
 `;
 
 function App() {

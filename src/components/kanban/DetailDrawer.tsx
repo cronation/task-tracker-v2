@@ -4,14 +4,15 @@ import { MdClose, MdDeleteOutline } from 'react-icons/md';
 import { useTodoStore } from '../../store/useTodoStore';
 import { useUIStore } from '../../store/useUIStore';
 import type { TodoStatus } from '../../types/todo';
+import { colors } from '../../utils/colors';
 
 // 1. 스타일링: 배경 오버레이 (클릭 시 닫힘)
 const Overlay = styled.div<{ $isOpen: boolean }>`
   position: fixed;
-  top: 0;
+  top: 60px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 60px);
   background: rgba(9, 30, 66, 0.54);
   z-index: 1000;
   opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
@@ -22,11 +23,11 @@ const Overlay = styled.div<{ $isOpen: boolean }>`
 // 2. 스타일링: 슬라이드 드로어
 const DrawerContainer = styled.div<{ $isOpen: boolean }>`
   position: fixed;
-  top: 0;
+  top: 60px;
   right: 0;
   width: 500px; /* 넓은 너비 */
   max-width: 90%;
-  height: 100vh;
+  height: calc(100% - 60px);
   background: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
   z-index: 1001;
@@ -63,6 +64,26 @@ const FormGroup = styled.div`
     font-weight: 600;
     color: #5e6c84;
     text-transform: uppercase;
+  }
+`;
+
+const ColorPickerContainer = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ColorCircle = styled.button<{ $color: string; $selected: boolean }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  padding: 0;
+  background-color: ${({ $color }) => $color};
+  border: 2px solid ${({ $selected }) => ($selected ? '#172b4d' : 'transparent')};
+  cursor: pointer;
+  transition: transform 0.1s;
+  
+  &:hover {
+    transform: scale(1.1);
   }
 `;
 
@@ -104,14 +125,24 @@ const ActionButton = styled.button`
   }
 `;
 
+const HistorySection = styled.div`
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #dfe1e6;
+  font-size: 12px;
+  color: #6b778c;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
 export const DetailDrawer = () => {
-  console.log(useTodoStore()); ///////////////////////////////////////
   const { todos, updateTodo, deleteTodo } = useTodoStore();
-  const { expandedTodoId, setExpandedTodoId } = useUIStore();
+  const { selectedTodoId, setSelectedTodoId } = useUIStore();
 
   // 현재 선택된 투두 찾기
-  const targetTodo = todos.find((t) => t.id === expandedTodoId);
-  const isOpen = !!expandedTodoId && !!targetTodo;
+  const targetTodo = todos.find((t) => t.id === selectedTodoId);
+  const isOpen = !!selectedTodoId && !!targetTodo;
 
   // 로컬 폼 상태
   const [formData, setFormData] = useState({
@@ -119,6 +150,7 @@ export const DetailDrawer = () => {
     status: 'IDEA' as TodoStatus,
     dueDate: '',
     memo: '',
+    colorIdx: 0,
   });
 
   // 투두가 열릴 때 데이터 동기화
@@ -129,13 +161,14 @@ export const DetailDrawer = () => {
         status: targetTodo.status,
         dueDate: targetTodo.dueDate,
         memo: targetTodo.memo,
+        colorIdx: targetTodo.colorIdx || 0,
       });
     }
   }, [targetTodo]);
 
   // 닫기 핸들러
   const handleClose = () => {
-    setExpandedTodoId(null);
+    setSelectedTodoId(null);
   };
 
   // 입력 핸들러
@@ -146,16 +179,22 @@ export const DetailDrawer = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleColorChange = (idx: number) => {
+    setFormData((prev) => ({ ...prev, colorIdx: idx }));
+    if (targetTodo) updateTodo(targetTodo.id, { colorIdx: idx });
+  };
+
   // 저장 핸들러 (onBlur)
   const handleSave = () => {
     if (!targetTodo) return;
-    
+
     // 변경사항이 있을 때만 저장 (불필요한 History 방지)
     const isChanged =
       formData.title !== targetTodo.title ||
       formData.status !== targetTodo.status ||
       formData.dueDate !== targetTodo.dueDate ||
-      formData.memo !== targetTodo.memo;
+      formData.memo !== targetTodo.memo ||
+      formData.colorIdx !== targetTodo.colorIdx;
 
     if (isChanged) {
       updateTodo(targetTodo.id, formData);
@@ -173,6 +212,8 @@ export const DetailDrawer = () => {
 
   // Todo가 없으면(삭제됨 등) 렌더링 안 함 (단, 닫히는 애니메이션 고려 시 isOpen으로 제어)
   if (!isOpen && !targetTodo) return null;
+
+  const formatDate = (ts?: number) => ts ? new Date(ts).toLocaleString() : '-';
 
   return (
     <>
@@ -196,7 +237,7 @@ export const DetailDrawer = () => {
             <option value="REVIEW">REVIEW</option>
             <option value="DONE">DONE</option>
           </select>
-          
+
           <div style={{ display: 'flex', gap: '8px' }}>
             <ActionButton onClick={handleDelete} style={{ color: '#DE350B' }}>
               <MdDeleteOutline size={18} />
@@ -239,6 +280,29 @@ export const DetailDrawer = () => {
               placeholder="메모를 입력하세요..."
             />
           </FormGroup>
+
+          <FormGroup>
+            <label>Color</label>
+            <ColorPickerContainer>
+              {colors.map((c, idx) => (
+                <ColorCircle
+                  key={c}
+                  $color={c}
+                  $selected={formData.colorIdx === idx}
+                  onClick={() => handleColorChange(idx)}
+                />
+              ))}
+            </ColorPickerContainer>
+          </FormGroup>
+
+          <HistorySection>
+            <div>Created: {formatDate(targetTodo.createdAt)}</div>
+            {targetTodo.plannedAt && <div>Planned: {formatDate(targetTodo.plannedAt)}</div>}
+            {targetTodo.startedAt && <div>Started: {formatDate(targetTodo.startedAt)}</div>}
+            {targetTodo.reviewedAt && <div>Reviewed: {formatDate(targetTodo.reviewedAt)}</div>}
+            {targetTodo.completedAt && <div>Completed: {formatDate(targetTodo.completedAt)}</div>}
+            <div>Last Updated: {formatDate(targetTodo.updatedAt)}</div>
+          </HistorySection>
         </Content>
       </DrawerContainer>
     </>

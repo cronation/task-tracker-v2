@@ -6,15 +6,9 @@ export const theme: DefaultTheme = {
     boardBg: '#FFFFFF',
     textPrimary: '#172B4D',
     textSecondary: '#5E6C84',
+    textDisabled: '#B2B2B2',
     border: '#DFE1E6',
     brand: '#0052CC',
     danger: '#DE350B',
-    status: {
-      IDEA: '#42526E',
-      PLAN: '#0052CC',
-      IN_PROGRESS: '#00B8D9',
-      REVIEW: '#FFAB00',
-      DONE: '#36B37E',
-    },
   },
 };

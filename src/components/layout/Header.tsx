@@ -4,13 +4,18 @@ import { useTodoStore } from '../../store/useTodoStore';
 import { MdUndo, MdRedo, MdViewList, MdViewKanban } from 'react-icons/md';
 
 const HeaderContainer = styled.header`
+  width: 100%;
+  height: 60px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   padding: 15px 20px;
   background: ${({ theme }) => theme.colors.boardBg};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  /* border-radius: 2px; */
+  position: relative;
+  z-index: 2000;
+  box-shadow: 0 2px 4px rgba(9, 30, 66, 0.25);
 `;
 
 const Title = styled.h1`
@@ -34,7 +39,12 @@ const IconButton = styled.button<{ $active?: boolean }>`
   color: ${({ $active, theme }) => ($active ? theme.colors.brand : theme.colors.textSecondary)};
   transition: all 0.2s;
 
-  &:hover {
+  &:disabled {
+    color: ${({ theme }) => theme.colors.textDisabled};
+    cursor: default;
+  }
+
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.bg};
     color: ${({ theme }) => theme.colors.textPrimary};
   }
@@ -45,26 +55,33 @@ const IconButton = styled.button<{ $active?: boolean }>`
 `;
 
 export const Header = () => {
-  const { viewMode, setViewMode } = useUIStore();
-  
-  // temporal.getState()를 사용하여 액션만 가져옵니다.
-  const { undo, redo, pastStates, futureStates } = useTodoStore.temporal.getState();
+  const { viewMode, setViewMode, setSelectedTodoId } = useUIStore();
+
+  const { undo, redo, past, future } = useTodoStore();
+
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
+
+  const onViewModeChange = (mode: 'LIST' | 'KANBAN') => {
+    setViewMode(mode);
+    setSelectedTodoId(null);
+  };
 
   return (
     <HeaderContainer>
       <Title>Task Tracker 2</Title>
-      
+
       <ControlGroup>
         {/* 뷰 모드 전환 */}
-        <IconButton 
-          onClick={() => setViewMode('KANBAN')} 
+        <IconButton
+          onClick={() => onViewModeChange('KANBAN')}
           $active={viewMode === 'KANBAN'}
           title="Kanban View"
         >
           <MdViewKanban />
         </IconButton>
-        <IconButton 
-          onClick={() => setViewMode('LIST')} 
+        <IconButton
+          onClick={() => onViewModeChange('LIST')}
           $active={viewMode === 'LIST'}
           title="List View"
         >
@@ -74,13 +91,10 @@ export const Header = () => {
         <div style={{ width: '1px', height: '24px', background: '#dfe1e6', margin: '0 8px' }} />
 
         {/* Undo / Redo */}
-        <IconButton onClick={() => undo()} title="Undo">
-        {/* <IconButton onClick={() => undo()} disabled={pastStates.length <= 1} title="Undo"> */}
-          {pastStates.length}
+        <IconButton onClick={() => undo()} disabled={!canUndo} title="Undo">
           <MdUndo />
         </IconButton>
-        <IconButton onClick={() => redo()} title="Redo">
-        {/* <IconButton onClick={() => redo()} disabled={futureStates.length === 0} title="Redo"> */}
+        <IconButton onClick={() => redo()} disabled={!canRedo} title="Redo">
           <MdRedo />
         </IconButton>
       </ControlGroup>
