@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { MdDeleteOutline, MdNotes, MdCalendarToday, MdNavigateNext, MdMoreHoriz } from 'react-icons/md';
+import { MdNotes, MdCalendarToday, MdNavigateNext, MdMoreHoriz } from 'react-icons/md';
+// import { MdDeleteOutline, MdNotes, MdCalendarToday, MdNavigateNext, MdMoreHoriz } from 'react-icons/md';
 import type { Todo, TodoStatus } from '../../types/todo';
 import { useTodoStore } from '../../store/useTodoStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -92,24 +93,27 @@ const ActionGroup = styled.div`
   z-index: 2; /* Ensure it stays on top */
 `;
 
-const IconButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  
-  &:hover {
-    background-color: rgba(9, 30, 66, 0.08);
-    opacity: 1;
-    color: #172b4d;
-  }
-`;
+// const IconButton = styled.button`
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   width: 24px;
+//   height: 24px;
+//   padding: 0;
 
-const DeleteBtn = styled(IconButton)`
-  color: ${({ theme }) => theme.colors.danger};
-`;
+//   &:hover {
+//     background-color: rgba(9, 30, 66, 0.08);
+//     opacity: 1;
+//     color: #172b4d;
+//   }
+// `;
+
+// const DeleteBtn = styled(IconButton)`
+//   color: #5e6c84;
+//   &:hover {
+//     color: ${({ theme }) => theme.colors.danger};
+//   }
+// `;
 
 const StepperContainer = styled.div`
   display: flex;
@@ -225,7 +229,8 @@ interface Props {
 const statusOrder: TodoStatus[] = ['IDEA', 'PLAN', 'IN_PROGRESS', 'REVIEW', 'DONE'];
 
 export const KanbanCard = ({ todo }: Props) => {
-  const { deleteTodo, moveTodo } = useTodoStore();
+  const { moveTodo } = useTodoStore();
+  // const { deleteTodo, moveTodo } = useTodoStore();
   const { setSelectedTodoId } = useUIStore();
   const [animType, setAnimType] = useState<'new' | 'updated' | 'none'>('none');
   const prevUpdatedRef = useRef(todo.updatedAt);
@@ -314,14 +319,14 @@ export const KanbanCard = ({ todo }: Props) => {
         </IconGroup>
 
         <ActionGroup>
-          <DeleteBtn
+          {/* <DeleteBtn
             onClick={(e) => {
               e.stopPropagation();
               deleteTodo(todo.id);
             }}
           >
             <MdDeleteOutline size={16} />
-          </DeleteBtn>
+          </DeleteBtn> */}
 
           {/* Stepper Controls */}
           <div style={{ position: 'relative' }}>

@@ -141,6 +141,14 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   // 삭제 핸들러
   const handleDelete = () => deleteTodo(todo.id);
 
+  const handleContainerBlur = (e: React.FocusEvent) => {
+    // If the new focus target is NOT within this container, close it
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      handleSave(); // Ensure save happens
+      setSelectedTodoId(null);
+    }
+  };
+
   const currentIndex = statusOrder.indexOf(todo.status);
   const nextStatus = currentIndex < statusOrder.length - 1 ? statusOrder[currentIndex + 1] : null;
 
@@ -178,7 +186,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   }
 
   return (
-    <ItemContainer $isExpanded={true}>
+    <ItemContainer $isExpanded={true} onBlur={handleContainerBlur}>
       <EditForm>
         <InputGroup>
           <StyledInput
