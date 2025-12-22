@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
-import { MdDeleteOutline, MdDateRange, MdClose, MdNavigateNext } from 'react-icons/md';
+import { MdDeleteOutline, MdDateRange, MdClose, MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import type { Todo, TodoStatus } from '../../types/todo';
 import { useTodoStore } from '../../store/useTodoStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -9,33 +9,32 @@ import { useUIStore } from '../../store/useUIStore';
 const ItemContainer = styled.div<{ $isExpanded: boolean }>`
   border-bottom: 1px solid ${({ theme }) => theme.colors.border};
   background: #fff;
-  transition: all 0.2s;
+  transition: margin 0.2s;
   position: relative; 
 
   ${({ $isExpanded }) =>
-    $isExpanded &&
-    css`
+    $isExpanded ?
+      css`
       background: #fafbfc;
       margin: 10px -10px; /* 살짝 튀어나오는 효과 */
       padding: 0 10px;
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       border-bottom: none;
+    ` :
+      css`
+      &:hover {
+        background: #f4f5f7;
+      }
     `}
-
-  &:hover {
-    background: #f4f5f7;
-  }
 `;
-
-// ... (SummaryView, SummaryMeta, SummaryMemo preserved) ...
 
 const SummaryView = styled.div`
   display: flex;
   align-items: center;
   padding: 3px 10px;
   cursor: pointer;
-  gap: 15px;
+  /* gap: 15px; */
   font-size: 14px;
   color: ${({ theme }) => theme.colors.textPrimary};
 `;
@@ -141,13 +140,13 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   // 삭제 핸들러
   const handleDelete = () => deleteTodo(todo.id);
 
-  const handleContainerBlur = (e: React.FocusEvent) => {
-    // If the new focus target is NOT within this container, close it
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-      handleSave(); // Ensure save happens
-      setSelectedTodoId(null);
-    }
-  };
+  // const handleContainerBlur = (e: React.FocusEvent) => {
+  //   // If the new focus target is NOT within this container, close it
+  //   if (!e.currentTarget.contains(e.relatedTarget)) {
+  //     handleSave(); // Ensure save happens
+  //     setSelectedTodoId(null);
+  //   }
+  // };
 
   const currentIndex = statusOrder.indexOf(todo.status);
   const nextStatus = currentIndex < statusOrder.length - 1 ? statusOrder[currentIndex + 1] : null;
@@ -178,15 +177,18 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
           </SummaryMeta>
 
         </SummaryView>
-        <SummaryMemo>
-          {displayMemo}
-        </SummaryMemo>
+        {todo.memo && (
+          <SummaryMemo>
+            {displayMemo}
+          </SummaryMemo>
+        )}
       </ItemContainer>
     );
   }
 
   return (
-    <ItemContainer $isExpanded={true} onBlur={handleContainerBlur}>
+    <ItemContainer $isExpanded={true}>
+      {/* <ItemContainer $isExpanded={true} onBlur={handleContainerBlur}> */}
       <EditForm>
         <InputGroup>
           <StyledInput
@@ -195,7 +197,6 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             onChange={handleChange}
             onBlur={handleSave}
             placeholder="할 일 제목"
-            autoFocus
           />
           <select
             name="status"
@@ -229,7 +230,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             disabled={!nextStatus}
             style={{ opacity: !nextStatus ? 0.3 : 1 }}
           >
-            <MdNavigateNext />
+            <MdKeyboardDoubleArrowRight />
           </TopIconButton>
           <TopIconButton onClick={() => setSelectedTodoId(null)} title="Close">
             <MdClose />
@@ -241,7 +242,14 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
           value={formData.memo}
           onChange={handleChange}
           onBlur={handleSave}
+          onFocus={(e) => {
+            const tempValue = e.target.value;
+            e.target.value = '';
+            e.target.value = tempValue;
+            e.target.scrollTop = e.target.scrollHeight;
+          }}
           placeholder="메모를 입력하세요..."
+          autoFocus
         />
       </EditForm>
     </ItemContainer>

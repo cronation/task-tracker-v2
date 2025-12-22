@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { MdNotes, MdCalendarToday, MdNavigateNext, MdMoreHoriz } from 'react-icons/md';
+import { MdNotes, MdCalendarToday, MdKeyboardDoubleArrowRight, MdMoreHoriz } from 'react-icons/md';
 // import { MdDeleteOutline, MdNotes, MdCalendarToday, MdNavigateNext, MdMoreHoriz } from 'react-icons/md';
 import type { Todo, TodoStatus } from '../../types/todo';
 import { useTodoStore } from '../../store/useTodoStore';
@@ -122,28 +122,6 @@ const StepperContainer = styled.div`
   margin-right: 4px;
 `;
 
-const StepperToggleBtn = styled.button`
-  width: 20px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid #dfe1e6;
-  border-right: none;
-  border-radius: 0;
-  border-top-left-radius: 15px;
-  border-bottom-left-radius: 15px;
-  cursor: pointer;
-  color: #5e6c84;
-  padding: 0;
-  
-  &:hover {
-    background: #f4f5f7;
-    color: #172b4d;
-  }
-`;
-
 const StepperNextBtn = styled.button`
   width: 32px;
   height: 30px;
@@ -161,7 +139,7 @@ const StepperNextBtn = styled.button`
   padding: 0;
   transition: all 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #f4f5f7;
     color: #172b4d;
   }
@@ -181,6 +159,29 @@ const StepperNextBtn = styled.button`
       transform: none;
       background: #fff;
     }
+  }
+`;
+
+const StepperToggleBtn = styled.button`
+  width: 20px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #dfe1e6;
+  border-right: none;
+  border-radius: 0;
+  border-top-left-radius: 15px;
+  border-bottom-left-radius: 15px;
+  cursor: pointer;
+  color: #5e6c84;
+  padding: 0;
+  padding-left: 2px;
+  
+  &:hover {
+    background: #f4f5f7;
+    color: #172b4d;
   }
 `;
 
@@ -227,6 +228,14 @@ interface Props {
 }
 
 const statusOrder: TodoStatus[] = ['IDEA', 'PLAN', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+
+const STATUS_LABELS: Record<TodoStatus, string> = {
+  IDEA: '구상',
+  PLAN: '계획',
+  IN_PROGRESS: '진행',
+  REVIEW: '검수',
+  DONE: '완료',
+};
 
 export const KanbanCard = ({ todo }: Props) => {
   const { moveTodo } = useTodoStore();
@@ -354,7 +363,8 @@ export const KanbanCard = ({ todo }: Props) => {
                     title={s}
                   >
                     {/* Using first letter for tiny drawer buttons */}
-                    {s.charAt(0)}
+                    {/* {s.charAt(0)} */}
+                    {STATUS_LABELS[s]}
                   </DrawerStageBtn>
                 ))}
               </StepperDrawer>
@@ -364,7 +374,7 @@ export const KanbanCard = ({ todo }: Props) => {
                 disabled={!nextStatus}
                 title={nextStatus ? `Move to ${nextStatus}` : 'Done'}
               >
-                <MdNavigateNext size={18} />
+                <MdKeyboardDoubleArrowRight size={18} />
               </StepperNextBtn>
             </StepperContainer>
           </div>

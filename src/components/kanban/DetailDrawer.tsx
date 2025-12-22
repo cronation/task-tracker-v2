@@ -13,7 +13,7 @@ const Overlay = styled.div<{ $isOpen: boolean }>`
   left: 0;
   width: 100%;
   height: calc(100% - 60px);
-  background: rgba(9, 30, 66, 0.54);
+  background: rgba(30, 30, 30, 0.54);
   z-index: 1000;
   opacity: ${({ $isOpen }) => ($isOpen ? 1 : 0)};
   visibility: ${({ $isOpen }) => ($isOpen ? 'visible' : 'hidden')};
@@ -271,13 +271,14 @@ export const DetailDrawer = () => {
           </FormGroup>
 
           <FormGroup>
-            <label>Description</label>
+            <label>Memo</label>
             <MemoTextarea
               name="memo"
               value={formData.memo}
               onChange={handleChange}
               onBlur={handleSave}
               placeholder="메모를 입력하세요..."
+              autoFocus
             />
           </FormGroup>
 

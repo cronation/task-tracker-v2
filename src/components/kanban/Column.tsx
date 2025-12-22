@@ -96,21 +96,22 @@ const CardList = styled.div`
 
 const AddForm = styled.div`
   width: 100%;
+  height: 73px;
   background: #fff;
   border-radius: 3px;
   padding: 8px;
   box-shadow: 0 1px 2px rgba(9, 30, 66, 0.25);
 
-  input {
+  /* input {
     width: 100%;
     margin-bottom: 8px;
-  }
+  } */
   
-  .btn-group {
+  /* .btn-group {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
-  }
+  } */
 `;
 
 interface Props {
@@ -199,8 +200,12 @@ export const Column = ({ status }: Props) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleAdd();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
     if (e.key === 'Escape') {
+      e.preventDefault();
       setNewTitle('');
       setNewDueDate('');
     }
@@ -244,11 +249,11 @@ export const Column = ({ status }: Props) => {
 
       <AddForm>
         <input
-          autoFocus
           placeholder="새로운 할 일"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={handleKeyDown}
+          style={{ width: '100%', height: '26px', marginBottom: '5px' }}
         />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <input
@@ -256,16 +261,14 @@ export const Column = ({ status }: Props) => {
             value={newDueDate}
             onChange={(e) => setNewDueDate(e.target.value)}
             onKeyDown={handleKeyDown}
-            style={{ width: 'auto', marginBottom: 0 }}
+            style={{ width: 'auto', height: '26px', marginBottom: 0 }}
           />
-          <div className="btn-group">
-            <button
-              onClick={handleAdd}
-              style={{ background: '#0052cc', color: '#fff', padding: '4px 8px', borderRadius: '3px' }}
-            >
-              <MdAdd />
-            </button>
-          </div>
+          <button
+            onClick={handleAdd}
+            style={{ background: '#0052cc', color: '#fff', padding: '4px 8px', borderRadius: '3px' }}
+          >
+            <MdAdd />
+          </button>
         </div>
       </AddForm>
     </ColumnContainer>

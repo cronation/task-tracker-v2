@@ -24,7 +24,6 @@ const StatusHeader = styled.div<{ $status: TodoStatus; $isOpen: boolean }>`
   background: #fff;
   cursor: pointer;
   border-bottom: ${({ $isOpen, theme }) => ($isOpen ? `1px solid ${theme.colors.border}` : 'none')};
-  transition: background 0.2s;
 
   &:hover {
     background: #fafbfc;
