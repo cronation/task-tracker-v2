@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 import { MdDeleteOutline, MdDateRange, MdClose, MdKeyboardDoubleArrowRight } from 'react-icons/md';
 import type { Todo, TodoStatus } from '../../types/todo';
@@ -142,6 +142,7 @@ const STATUS_LABELS: Record<TodoStatus, string> = {
 export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   const { updateTodo, deleteTodo } = useTodoStore();
   const { selectedTodoId, setSelectedTodoId } = useUIStore();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isExpanded = selectedTodoId === todo.id;
 
@@ -151,6 +152,12 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   useEffect(() => {
     setFormData(todo);
   }, [todo]);
+
+  useEffect(() => {
+    if (isExpanded) {
+      containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isExpanded]);
 
   // 자동 저장 로직 (onBlur)
   const handleSave = () => {
@@ -200,7 +207,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
       : todo.memo;
 
     return (
-      <ItemContainer $isExpanded={false} onClick={() => setSelectedTodoId(todo.id)}>
+      <ItemContainer ref={containerRef} $isExpanded={false} onClick={() => setSelectedTodoId(todo.id)}>
         <ColorDot $color={colors[todo.colorIdx] || colors[0]} />
         <SummaryView>
           <div style={{ flex: 1, fontWeight: 500 }}>{todo.title || '(제목 없음)'}</div>
@@ -224,8 +231,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   }
 
   return (
-    <ItemContainer $isExpanded={true}>
-      {/* <ItemContainer $isExpanded={true} onBlur={handleContainerBlur}> */}
+    <ItemContainer ref={containerRef} $isExpanded={true}>
       <ColorStrip $color={colors[todo.colorIdx] || colors[0]} />
       <EditForm>
         <InputGroup>

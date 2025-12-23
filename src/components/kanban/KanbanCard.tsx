@@ -253,7 +253,7 @@ export const KanbanCard = ({ todo }: Props) => {
     // New Task Check
     if (now - todo.createdAt < 1000) {
       setAnimType('new');
-      containerRef.current?.scrollIntoView({ behavior: 'instant', block: 'center' });
+      containerRef.current?.scrollIntoView({ behavior: 'instant', block: 'nearest' });
       const timer = setTimeout(() => setAnimType('none'), 500);
       return () => clearTimeout(timer);
     }
