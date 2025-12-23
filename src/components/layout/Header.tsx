@@ -37,7 +37,6 @@ const IconButton = styled.button<{ $active?: boolean }>`
   border-radius: 4px;
   background: ${({ $active, theme }) => ($active ? theme.colors.bg : 'transparent')};
   color: ${({ $active, theme }) => ($active ? theme.colors.brand : theme.colors.textSecondary)};
-  transition: all 0.2s;
 
   &:disabled {
     color: ${({ theme }) => theme.colors.textDisabled};
@@ -46,7 +45,7 @@ const IconButton = styled.button<{ $active?: boolean }>`
 
   &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.bg};
-    color: ${({ theme }) => theme.colors.textPrimary};
+    color: ${({ $active, theme }) => ($active ? theme.colors.brand : theme.colors.textPrimary)};
   }
 
   svg {
