@@ -35,6 +35,17 @@ const DrawerContainer = styled.div<{ $isOpen: boolean }>`
   transition: transform 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
+
+  animation: slideIn 0.1s linear;
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 `;
 
 const Header = styled.div`
@@ -204,10 +215,8 @@ export const DetailDrawer = () => {
   // 삭제 핸들러
   const handleDelete = () => {
     if (!targetTodo) return;
-    if (window.confirm('정말 삭제하시겠습니까?')) {
-      deleteTodo(targetTodo.id);
-      handleClose();
-    }
+    deleteTodo(targetTodo.id);
+    handleClose();
   };
 
   // Todo가 없으면(삭제됨 등) 렌더링 안 함 (단, 닫히는 애니메이션 고려 시 isOpen으로 제어)
@@ -279,6 +288,13 @@ export const DetailDrawer = () => {
               onBlur={handleSave}
               placeholder="메모를 입력하세요..."
               autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Tab') {
+                  e.preventDefault();
+                  handleSave();
+                  setSelectedTodoId(null);
+                }
+              }}
             />
           </FormGroup>
 
