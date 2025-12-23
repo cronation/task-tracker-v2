@@ -6,10 +6,12 @@ interface UIState {
   viewMode: 'KANBAN' | 'LIST';
   statusSorts: Record<TodoStatus, SortOption>;
   selectedTodoId: string | null;
+  listStatusOpen: Record<TodoStatus, boolean>;
   setViewMode: (mode: 'KANBAN' | 'LIST') => void;
   setSort: (status: TodoStatus, option: SortOption) => void;
   toggleSort: (status: TodoStatus, field: SortField) => void;
   setSelectedTodoId: (id: string | null) => void;
+  setListStatusOpen: (status: TodoStatus, open: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -24,6 +26,13 @@ export const useUIStore = create<UIState>()(
         DONE: 'CREATED_DESC',
       },
       selectedTodoId: null,
+      listStatusOpen: {
+        IDEA: false,
+        PLAN: false,
+        IN_PROGRESS: false,
+        REVIEW: false,
+        DONE: false,
+      },
       setViewMode: (mode) => set({ viewMode: mode }),
       setSort: (status, option) =>
         set((state) => ({
@@ -52,6 +61,10 @@ export const useUIStore = create<UIState>()(
       setSelectedTodoId: (id) =>
         set((state) => ({
           selectedTodoId: state.selectedTodoId === id ? null : id,
+        })),
+      setListStatusOpen: (status, open) =>
+        set((state) => ({
+          listStatusOpen: { ...state.listStatusOpen, [status]: open },
         })),
     }),
     {

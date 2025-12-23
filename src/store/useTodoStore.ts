@@ -33,7 +33,7 @@ export const useTodoStore = create<TodoState>()(
           todos: [
             ...state.todos,
             {
-              id: uuidv4(),
+              id: todo.id || uuidv4(),
               title: todo.title || '',
               memo: todo.memo || '',
               dueDate: todo.dueDate || '',

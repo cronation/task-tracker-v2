@@ -4,6 +4,7 @@ import { MdDeleteOutline, MdDateRange, MdClose, MdKeyboardDoubleArrowRight } fro
 import type { Todo, TodoStatus } from '../../types/todo';
 import { useTodoStore } from '../../store/useTodoStore';
 import { useUIStore } from '../../store/useUIStore';
+import { colors } from '../../utils/colors';
 
 // 스타일링
 const ItemContainer = styled.div<{ $isExpanded: boolean }>`
@@ -23,6 +24,7 @@ const ItemContainer = styled.div<{ $isExpanded: boolean }>`
       border-bottom: none;
     ` :
       css`
+      padding-left: 22px;
       &:hover {
         background: #f4f5f7;
       }
@@ -37,6 +39,16 @@ const SummaryView = styled.div`
   /* gap: 15px; */
   font-size: 14px;
   color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+const ColorDot = styled.div<{ $color: string }>`  position: absolute;
+  left: 10px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: ${({ $color }) => $color};
 `;
 
 const SummaryMeta = styled.div`
@@ -66,6 +78,17 @@ const EditForm = styled.div`
   gap: 12px;
 `;
 
+const ColorStrip = styled.div<{ $color: string }>`
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: ${({ $color }) => $color};
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+`;
+
 const InputGroup = styled.div`
   display: flex;
   gap: 10px;
@@ -74,7 +97,6 @@ const InputGroup = styled.div`
 
 const StyledInput = styled.input`
   flex: 1;
-  font-weight: 600;
 `;
 
 const StyledTextarea = styled.textarea`
@@ -83,7 +105,7 @@ const StyledTextarea = styled.textarea`
   border: 1px solid ${({ theme }) => theme.colors.border};
   border-radius: 3px;
   resize: vertical;
-  min-height: 80px;
+  min-height: 84px;
   font-family: inherit;
 `;
 
@@ -102,7 +124,20 @@ const TopIconButton = styled.button`
   }
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 2px;
+`;
+
 const statusOrder: TodoStatus[] = ['IDEA', 'PLAN', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+
+const STATUS_LABELS: Record<TodoStatus, string> = {
+  IDEA: '구상',
+  PLAN: '계획',
+  IN_PROGRESS: '진행',
+  REVIEW: '검수',
+  DONE: '완료',
+};
 
 export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   const { updateTodo, deleteTodo } = useTodoStore();
@@ -123,7 +158,8 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
       formData.title !== todo.title ||
       formData.dueDate !== todo.dueDate ||
       formData.memo !== todo.memo ||
-      formData.status !== todo.status;
+      formData.status !== todo.status ||
+      formData.colorIdx !== todo.colorIdx;
 
     if (isChanged) {
       updateTodo(todo.id, formData);
@@ -165,6 +201,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
 
     return (
       <ItemContainer $isExpanded={false} onClick={() => setSelectedTodoId(todo.id)}>
+        <ColorDot $color={colors[todo.colorIdx] || colors[0]} />
         <SummaryView>
           <div style={{ flex: 1, fontWeight: 500 }}>{todo.title || '(제목 없음)'}</div>
 
@@ -189,6 +226,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   return (
     <ItemContainer $isExpanded={true}>
       {/* <ItemContainer $isExpanded={true} onBlur={handleContainerBlur}> */}
+      <ColorStrip $color={colors[todo.colorIdx] || colors[0]} />
       <EditForm>
         <InputGroup>
           <StyledInput
@@ -197,6 +235,7 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             onChange={handleChange}
             onBlur={handleSave}
             placeholder="할 일 제목"
+            autoFocus={formData.title === ''}
           />
           <select
             name="status"
@@ -206,12 +245,13 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
               updateTodo(todo.id, { status: e.target.value as TodoStatus });
             }}
             onBlur={handleSave}
+            tabIndex={-1}
           >
-            <option value="IDEA">IDEA</option>
-            <option value="PLAN">PLAN</option>
-            <option value="IN_PROGRESS">IN PROGRESS</option>
-            <option value="REVIEW">REVIEW</option>
-            <option value="DONE">DONE</option>
+            {statusOrder.map((status) => (
+              <option key={status} value={status} disabled={status === formData.status}>
+                {STATUS_LABELS[status]}
+              </option>
+            ))}
           </select>
           <input
             type="date"
@@ -219,22 +259,38 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             value={formData.dueDate}
             onChange={handleChange}
             onBlur={handleSave}
+            tabIndex={-1}
           />
-
-          <TopIconButton onClick={handleDelete} title="Delete" style={{ color: '#DE350B' }}>
-            <MdDeleteOutline />
-          </TopIconButton>
-          <TopIconButton
-            onClick={handleNext}
-            title={nextStatus ? `Move to ${nextStatus}` : 'Done'}
-            disabled={!nextStatus}
-            style={{ opacity: !nextStatus ? 0.3 : 1 }}
+          <select
+            name="colorIdx"
+            value={formData.colorIdx}
+            onChange={handleChange}
+            onBlur={handleSave}
+            style={{ backgroundColor: colors[formData.colorIdx] }}
+            tabIndex={-1}
           >
-            <MdKeyboardDoubleArrowRight />
-          </TopIconButton>
-          <TopIconButton onClick={() => setSelectedTodoId(null)} title="Close">
-            <MdClose />
-          </TopIconButton>
+            {colors.map((c, idx) => (
+              <option key={idx} value={idx} style={{ backgroundColor: c }} />
+            ))}
+          </select>
+
+          <ButtonGroup>
+            <TopIconButton onClick={handleDelete} title="Delete" style={{ color: '#DE350B' }} tabIndex={-1}>
+              <MdDeleteOutline />
+            </TopIconButton>
+            <TopIconButton
+              onClick={handleNext}
+              title={nextStatus ? `Move to ${nextStatus}` : 'Done'}
+              disabled={!nextStatus}
+              style={{ opacity: !nextStatus ? 0.3 : 1 }}
+              tabIndex={-1}
+            >
+              <MdKeyboardDoubleArrowRight />
+            </TopIconButton>
+            <TopIconButton onClick={() => setSelectedTodoId(null)} title="Close" tabIndex={-1}>
+              <MdClose />
+            </TopIconButton>
+          </ButtonGroup>
         </InputGroup>
 
         <StyledTextarea
@@ -248,8 +304,15 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
             e.target.value = tempValue;
             e.target.scrollTop = e.target.scrollHeight;
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab') {
+              e.preventDefault();
+              handleSave();
+              setSelectedTodoId(null);
+            }
+          }}
           placeholder="메모를 입력하세요..."
-          autoFocus
+          autoFocus={formData.title !== ''}
         />
       </EditForm>
     </ItemContainer>
