@@ -201,10 +201,11 @@ export const TodoItemAccordion = ({ todo }: { todo: Todo }) => {
   };
 
   if (!isExpanded) {
-    const memoLines = todo.memo ? todo.memo.split('\n') : [];
-    const displayMemo = memoLines.length > 3
-      ? '... \n' + memoLines.slice(-3).join('\n')
-      : todo.memo;
+    const memoLines = todo.memo ? todo.memo.trim().split('\n') : [];
+    const filteredMemoLines = memoLines.filter(line => line !== '');
+    const displayMemo = filteredMemoLines.length > 3
+      ? '... \n' + filteredMemoLines.slice(-3).join('\n')
+      : filteredMemoLines.join('\n');
 
     return (
       <ItemContainer ref={containerRef} $isExpanded={false} onClick={() => setSelectedTodoId(todo.id)}>
