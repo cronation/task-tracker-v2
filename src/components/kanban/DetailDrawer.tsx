@@ -78,6 +78,10 @@ const FormGroup = styled.div`
   }
 `;
 
+const MemoFormGroup = styled(FormGroup)`
+  flex-grow: 1;
+`;
+
 const ColorPickerContainer = styled.div`
   display: flex;
   gap: 8px;
@@ -118,6 +122,7 @@ const TitleInput = styled.textarea`
 `;
 
 const MemoTextarea = styled.textarea`
+  height: 100%;
   min-height: 150px;
   resize: vertical;
   line-height: 1.6;
@@ -240,11 +245,11 @@ export const DetailDrawer = () => {
             }}
             style={{ padding: '6px', fontWeight: 'bold' }}
           >
-            <option value="IDEA">IDEA</option>
-            <option value="PLAN">PLAN</option>
-            <option value="IN_PROGRESS">IN PROGRESS</option>
-            <option value="REVIEW">REVIEW</option>
-            <option value="DONE">DONE</option>
+            <option value="IDEA">구상</option>
+            <option value="PLAN">계획</option>
+            <option value="IN_PROGRESS">진행</option>
+            <option value="REVIEW">검수</option>
+            <option value="DONE">완료</option>
           </select>
 
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -279,7 +284,7 @@ export const DetailDrawer = () => {
             />
           </FormGroup>
 
-          <FormGroup>
+          <MemoFormGroup>
             <label>Memo</label>
             <MemoTextarea
               name="memo"
@@ -296,7 +301,7 @@ export const DetailDrawer = () => {
                 }
               }}
             />
-          </FormGroup>
+          </MemoFormGroup>
 
           <FormGroup>
             <label>Color</label>

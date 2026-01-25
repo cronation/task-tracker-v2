@@ -41,7 +41,8 @@ const SummaryView = styled.div`
   color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
-const ColorDot = styled.div<{ $color: string }>`  position: absolute;
+const ColorDot = styled.div<{ $color: string }>`
+  position: absolute;
   left: 10px;
   top: 50%;
   translate: 0 -50%;
